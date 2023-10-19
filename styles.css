@@ -3,3 +3,108 @@
     padding: 0;
     box-sizing: border-box;
 }
+
+body {
+    background-color: #5DBF81;
+}
+
+#pop-up {
+    height: 60px;
+    width: 60px;
+    background-color: #061647;
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    border-radius: 50%;
+    box-shadow: rgba(0, 0, 0, 0.16) 0px 5px 40px;
+    cursor: pointer;
+}
+
+#chat-container {
+    position: fixed;
+    bottom: 90px;
+    right: 20px;
+    width: 330px;
+    height: min-content;
+    max-height: 500px;
+    overflow: auto;
+    background-color: white;
+    border-radius: 5px;
+    box-shadow: rgba(0, 0, 0, 0.16) 0px 5px 40px;
+    opacity: 0;
+    transition: opacity 0.3s ease 0s;
+    visibility: hidden;
+    display: block;
+    padding: 30px 20px;
+}
+
+.visible-pop-up {
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+.hide-pop-up {
+    visibility: hidden !important;
+    opacity: 0 !important;
+    transition: opacity 0.3s ease 0s, visibility 0s ease 0.3s !important;
+}
+
+/* Form Styling */
+#chat-container > .form-header {
+    text-align: center;
+    margin-bottom: 40px;
+    color: #061647;
+}
+
+.required::after {
+    content: ' *';
+    color: red;
+}
+
+.form-header > h2 {
+    margin-bottom: 10px;
+    font-weight: bold;
+}
+
+.form-header > p {
+    color: #0000009a;
+}
+
+.form > :not(:nth-child(5)) {
+    margin-bottom: 30px;
+}
+
+.form > .form-group > label {
+    font-weight: bold;
+    color: #061647;
+}
+
+.form-input {
+    width: 100%;
+    outline: none;
+    border: none;
+    border-bottom: 2px solid #00000050;
+    padding: 10px 0px;
+    color: #0000009a;
+}
+
+.form-input:focus-visible {
+    border-bottom: 2px solid #061647;
+}
+
+.form-btn {
+    background-color: #061647;
+    padding: 10px 20px;
+    color: white;
+    font-weight: bold;
+    border: none;
+    border-radius: 5px;
+    margin-top: 10px;
+    cursor: pointer;
+}
+
+.form-btn-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
