@@ -98,48 +98,47 @@ const styles = `
         justify-content: center;
         align-items: center;
     }
-
 `;
 
 function createStyles(styles) {
     const style = document.createElement('style');
     style.id = 'tcb-pop-up-stylesheet';
     style.innerHTML = styles;
-    document.getElementsByTagName('head')[0].appendChild(style);
+    document.head.appendChild(style);
+}
+
+function createFormElement(type, name, className, placeholder = '') {
+    const element = document.createElement('input');
+    element.type = type;
+    element.name = name;
+    element.className = className;
+    element.placeholder = placeholder;
+    element.required = true;
+    return element;
 }
 
 (function () {
-    // Create div element with id "chat-container"
     const chatContainer = document.createElement('div');
     chatContainer.id = 'chat-container';
 
-    // Create div element with class "form-header"
     const formHeader = document.createElement('div');
     formHeader.className = 'form-header';
 
-    // Create h2 element
     const heading = document.createElement('h2');
     heading.textContent = 'Message Us';
 
-    // Create p element
     const paragraph = document.createElement('p');
     paragraph.textContent = 'Send us a message and we will get back to you shortly by text message.';
 
-    // Append heading and paragraph to formHeader
     formHeader.appendChild(heading);
     formHeader.appendChild(paragraph);
-
-    // Append formHeader to chatContainer
     chatContainer.appendChild(formHeader);
 
-    // Create div element with class "form"
     const formDiv = document.createElement('form');
     formDiv.className = 'form';
 
-    // Array of form input names
     const inputNames = ['Name', 'Email', 'Phone', 'Message'];
 
-    // Iterate through inputNames to create form groups and inputs
     inputNames.forEach(name => {
         const formGroup = document.createElement('div');
         formGroup.className = 'form-group';
@@ -148,30 +147,21 @@ function createStyles(styles) {
         label.className = 'required';
         label.textContent = name;
 
-        const input = document.createElement('input');
-        input.type = name === 'Email' ? 'email' : 'text';
-        input.name = name.toLowerCase();
-        input.className = 'form-input';
+        const inputType = name === 'Email' ? 'email' : 'text';
+        const input = createFormElement(inputType, name.toLowerCase(), 'form-input');
 
-        // Append label and input to formGroup
         formGroup.appendChild(label);
         formGroup.appendChild(input);
-
-        // Append formGroup to formDiv
         formDiv.appendChild(formGroup);
     });
 
-    // Create button element with class "form-btn"
     const button = document.createElement('button');
     button.className = 'form-btn';
     button.textContent = 'Send';
 
-    // Create div element with class "form-btn-wrapper" and append the button
     const buttonWrapper = document.createElement('div');
     buttonWrapper.className = 'form-btn-wrapper';
     buttonWrapper.appendChild(button);
-
-    // Append buttonWrapper to formDiv
     formDiv.appendChild(buttonWrapper);
 
     formDiv.addEventListener('submit', function (e) {
@@ -181,7 +171,7 @@ function createStyles(styles) {
         const email = formDiv.querySelector('input[name="email"]').value;
         const phone = formDiv.querySelector('input[name="phone"]').value;
         const messageBody = formDiv.querySelector('input[name="message"]').value;
-        const companyId = document.getElementsByClassName("tcb-chat-window-pop-up")?.item(0)?.id;
+        const companyId = document.querySelector('.tcb-chat-window-pop-up')?.id;
 
         const data = {
             companyId,
@@ -191,7 +181,8 @@ function createStyles(styles) {
             messageBody
         };
 
-        // Send a POST request to the Node.js backend
+        button.textContent = '...';
+
         fetch('http://localhost:8000/api/message/receive/script', {
             method: 'POST',
             headers: {
@@ -201,25 +192,36 @@ function createStyles(styles) {
         })
             .then((response) => {
                 if (response.ok) {
-                    console.log('Form submitted successfully');
+                    formDiv.style.display = 'none';
+                    heading.textContent = 'Message sent successfully!';
+                    paragraph.textContent = 'Our team will contact you shortly!';
                     formDiv.reset();
+                    console.log('Form submitted successfully');
                 } else {
+                    formDiv.style.display = 'none';
+                    heading.textContent = 'Error sending message';
+                    paragraph.textContent = 'Please try again';
+                    formDiv.reset();
                     console.log('Form submission failed');
                 }
+
+                button.textContent = 'Send';
             })
             .catch((error) => {
+                formDiv.style.display = 'none';
+                heading.textContent = 'Error sending message';
+                paragraph.textContent = 'Please try again';
+                formDiv.reset();
+                button.textContent = 'Send';
                 console.error('Error:', error);
             });
     });
 
-    // Append formDiv to chatContainer
     chatContainer.appendChild(formDiv);
 
-    // Create div element with id "pop-up"
     const popUp = document.createElement('div');
     popUp.id = 'pop-up';
 
-    // Adding event handler
     popUp.addEventListener('click', () => {
         if (chatContainer.classList.contains("visible-pop-up")) {
             chatContainer.classList.remove("visible-pop-up")
@@ -230,10 +232,8 @@ function createStyles(styles) {
         }
     });
 
-    // Injecting styles
     createStyles(styles);
 
-    // Append chatContainer and popUp to the body of the document
     document.body.appendChild(chatContainer);
     document.body.appendChild(popUp);
 })();
