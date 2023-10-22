@@ -148,12 +148,19 @@ const popUpHTML = `<div id="pop-up"></div>`;
         formDiv.reset();
     }
 
+    const hideForm = () => {
+        formDiv.style.display = 'none';
+        formDiv.reset();
+    }
+
     const successForm = () => {
+        hideForm();
         heading.textContent = 'Message sent successfully!';
         paragraph.textContent = 'Our team will contact you shortly!';
     }
 
     const errorForm = () => {
+        hideForm();
         heading.textContent = 'Error sending message';
         paragraph.textContent = 'Please try again';
     }
@@ -169,9 +176,6 @@ const popUpHTML = `<div id="pop-up"></div>`;
                 },
                 body: JSON.stringify(data),
             });
-
-            formDiv.style.display = 'none';
-            formDiv.reset();
 
             if (response.ok) {
                 successForm();
