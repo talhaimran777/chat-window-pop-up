@@ -107,125 +107,108 @@ function createStyles(styles) {
     document.head.appendChild(style);
 }
 
-function createFormElement(type, name, className, placeholder = '') {
-    const element = document.createElement('input');
-    element.type = type;
-    element.name = name;
-    element.className = className;
-    element.placeholder = placeholder;
-    element.required = true;
-    return element;
-}
+const chatContainerHTML = `
+    <div id="chat-container">
+        <div class="form-header">
+            <h2 class="heading">Message Us</h2>
+            <p class="paragraph">Send us a message and we will get back to you shortly by text message.</p>
+        </div>
+        <form class="form">
+            ${['Name', 'Email', 'Phone', 'Message'].map(name => `
+                <div class="form-group">
+                    <label class="required">${name}</label>
+                    <input type="${name === 'Email' ? 'email' : 'text'}" name="${name.toLowerCase()}" class="form-input" required>
+                </div>
+            `).join('')}
+            <div class="form-btn-wrapper">
+                <button type="submit" class="form-btn">Send</button>
+            </div>
+        </form>
+    </div>
+`;
+
+const popUpHTML = `<div id="pop-up"></div>`;
+
 
 (function () {
-    const chatContainer = document.createElement('div');
-    chatContainer.id = 'chat-container';
+    const chatContainer = document.createRange().createContextualFragment(chatContainerHTML).firstChild.nextElementSibling;
+    const popUp = document.createRange().createContextualFragment(popUpHTML).firstChild;
 
-    const formHeader = document.createElement('div');
-    formHeader.className = 'form-header';
+    const formDiv = chatContainer.querySelector('.form');
+    const formHeader = chatContainer.querySelector('.form-header');
+    const button = formDiv.querySelector('.form-btn')
 
-    const heading = document.createElement('h2');
-    heading.textContent = 'Message Us';
+    const heading = formHeader.querySelector('.heading');
+    const paragraph = formHeader.querySelector('.paragraph');
 
-    const paragraph = document.createElement('p');
-    paragraph.textContent = 'Send us a message and we will get back to you shortly by text message.';
+    const resetForm = () => {
+        formDiv.style.display = 'block';
+        heading.textContent = 'Message Us';
+        paragraph.textContent = 'Send us a message and we will get back to you shortly by text message.';
+        formDiv.reset();
+    }
 
-    formHeader.appendChild(heading);
-    formHeader.appendChild(paragraph);
-    chatContainer.appendChild(formHeader);
+    const successForm = () => {
+        heading.textContent = 'Message sent successfully!';
+        paragraph.textContent = 'Our team will contact you shortly!';
+    }
 
-    const formDiv = document.createElement('form');
-    formDiv.className = 'form';
+    const errorForm = () => {
+        heading.textContent = 'Error sending message';
+        paragraph.textContent = 'Please try again';
+    }
 
-    const inputNames = ['Name', 'Email', 'Phone', 'Message'];
+    const sendMessage = async (data) => {
+        try {
+            button.textContent = '...';
 
-    inputNames.forEach(name => {
-        const formGroup = document.createElement('div');
-        formGroup.className = 'form-group';
+            const response = await fetch('http://localhost:8000/api/message/receive/script', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            });
 
-        const label = document.createElement('label');
-        label.className = 'required';
-        label.textContent = name;
+            formDiv.style.display = 'none';
+            formDiv.reset();
 
-        const inputType = name === 'Email' ? 'email' : 'text';
-        const input = createFormElement(inputType, name.toLowerCase(), 'form-input');
+            if (response.ok) {
+                successForm();
+            } else {
+                errorForm();
+            }
+        } catch (error) {
+            errorForm();
+        } finally {
+            button.textContent = 'Send';
+        }
+    }
 
-        formGroup.appendChild(label);
-        formGroup.appendChild(input);
-        formDiv.appendChild(formGroup);
-    });
-
-    const button = document.createElement('button');
-    button.className = 'form-btn';
-    button.textContent = 'Send';
-
-    const buttonWrapper = document.createElement('div');
-    buttonWrapper.className = 'form-btn-wrapper';
-    buttonWrapper.appendChild(button);
-    formDiv.appendChild(buttonWrapper);
-
-    formDiv.addEventListener('submit', function (e) {
+    formDiv.addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        const name = formDiv.querySelector('input[name="name"]').value;
-        const email = formDiv.querySelector('input[name="email"]').value;
-        const phone = formDiv.querySelector('input[name="phone"]').value;
-        const messageBody = formDiv.querySelector('input[name="message"]').value;
         const companyId = document.querySelector('.tcb-chat-window-pop-up')?.id;
-
         const data = {
-            companyId,
-            name,
-            email,
-            phone,
-            messageBody
+            companyId
         };
 
-        button.textContent = '...';
+        new FormData(formDiv).forEach((value, key) => {
+            if (key === "message") {
+                data["messageBody"] = value;
+            } else {
+                data[key] = value;
+            }
+        });
 
-        fetch('http://localhost:8000/api/message/receive/script', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data),
-        })
-            .then((response) => {
-                if (response.ok) {
-                    formDiv.style.display = 'none';
-                    heading.textContent = 'Message sent successfully!';
-                    paragraph.textContent = 'Our team will contact you shortly!';
-                    formDiv.reset();
-                    console.log('Form submitted successfully');
-                } else {
-                    formDiv.style.display = 'none';
-                    heading.textContent = 'Error sending message';
-                    paragraph.textContent = 'Please try again';
-                    formDiv.reset();
-                    console.log('Form submission failed');
-                }
-
-                button.textContent = 'Send';
-            })
-            .catch((error) => {
-                formDiv.style.display = 'none';
-                heading.textContent = 'Error sending message';
-                paragraph.textContent = 'Please try again';
-                formDiv.reset();
-                button.textContent = 'Send';
-                console.error('Error:', error);
-            });
+        sendMessage(data);
     });
-
-    chatContainer.appendChild(formDiv);
-
-    const popUp = document.createElement('div');
-    popUp.id = 'pop-up';
 
     popUp.addEventListener('click', () => {
         if (chatContainer.classList.contains("visible-pop-up")) {
             chatContainer.classList.remove("visible-pop-up")
             chatContainer.classList.add("hide-pop-up");
+            setTimeout(resetForm, 400);
         } else {
             chatContainer.classList.remove("hide-pop-up")
             chatContainer.classList.add("visible-pop-up");
